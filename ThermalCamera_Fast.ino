@@ -58,11 +58,12 @@
 #define BUTTON_TEXTSIZE 2
 
 // fire up the display using a very fast driver
-// this next line is for my modified library where I pass the screen dimensions in--that way i can use the same lib for my 3.5", 2.8" and other sizes
-// ILI9341_t3 Display = ILI9341_t3(PIN_CS, PIN_DC, 240, 320);
+ILI9341_t3 Display = ILI9341_t3(PIN_CS, PIN_DC);
 
-// you will need to use this line
-ILI9341_t3 Display = ILI9341_t3(PIN_CS, PIN_DC, 240, 320);
+// note if you have a white screen trying connecting a reset line (say pin 7 on your teensy to RST on the display and use this line
+// if you have no pins left, put a 1K series resistor between Vcc and RST on the dispay and a 10 uf cap between RST and GND on the display
+// basically add a low pass filter--this will slow the charge to the RST pin (you may need to experiment with the resistor and cap values
+// ILI9341_t3 Display = ILI9341_t3(PIN_CS, PIN_DC, 7);
 
 
 // create some colors for the keypad buttons
@@ -273,7 +274,6 @@ void loop() {
 
   // read the sensor
   ThermalSensor.readPixels(pixels);
-  // InterpolateRows();
   // now that we have an 8 x 8 sensor array
   // interpolate to get a bigger screen
   // interpolate the 8 rows (interpolate the 70 column points between the 8 sensor pixels first)
@@ -301,7 +301,6 @@ void loop() {
   // now that we have row data with 70 columns
   // interpolate each of the 70 columns
   // forget Arduino..no where near fast enough..Teensy at > 72 mhz is the starting point
-  //  InterpolateCols();
   for (col = 0; col < 70; col ++) {
     for (row = 0; row < 70; row ++) {
       // get the first array point, then the next
@@ -321,8 +320,6 @@ void loop() {
     }
   }
   // display the 70 x 70 array
-  //  DisplayGradient();
-  // Display.setRotation(2);
 
   // rip through 70 rows
   for (row = 0; row < 70; row ++) {
@@ -393,109 +390,6 @@ void loop() {
   }
 
 }
-
-
-
-/*
-  // interplation function to create 70 columns for 8 rows
-  void InterpolateRows() {
-
-  // interpolate the 8 rows (interpolate the 70 column points between the 8 sensor pixels first)
-  for (row = 0; row < 8; row ++) {
-    for (col = 0; col < 70; col ++) {
-      // get the first array point, then the next
-      // also need to bump by 8 for the subsequent rows
-      aLow =  col / 10 + (row * 8);
-      aHigh = (col / 10) + 1 + (row * 8);
-      // get the amount to interpolate for each of the 10 columns
-      // here were doing simple linear interpolation mainly to keep performace high and
-      // display is 5-6-5 color palet so fancy interpolation will get lost in low color depth
-      intPoint =   (( pixels[aHigh] - pixels[aLow] ) / 10.0 );
-      // determine how much to bump each column (basically 0-9)
-      incr = col % 10;
-      // find the interpolated value
-      val = (intPoint * incr ) +  pixels[aLow];
-      // store in the 70 x 70 array
-      // since display is pointing away, reverse row to transpose row data
-      HDTemp[ (7 - row) * 10][col] = val;
-
-    }
-  }
-  }
-*/
-
-/*
-  // interplation function to interpolate 70 columns from the interpolated rows
-  void InterpolateCols() {
-
-  // then interpolate the 70 rows between the 8 sensor points
-  for (col = 0; col < 70; col ++) {
-    for (row = 0; row < 70; row ++) {
-      // get the first array point, then the next
-      // also need to bump by 8 for the subsequent cols
-      aLow =  (row / 10 ) * 10;
-      aHigh = aLow + 10;
-      // get the amount to interpolate for each of the 10 columns
-      // here were doing simple linear interpolation mainly to keep performace high and
-      // display is 5-6-5 color palet so fancy interpolation will get lost in low color depth
-      intPoint =   (( HDTemp[aHigh][col] - HDTemp[aLow][col] ) / 10.0 );
-      // determine how much to bump each column (basically 0-9)
-      incr = row % 10;
-      // find the interpolated value
-      val = (intPoint * incr ) +  HDTemp[aLow][col];
-      // store in the 70 x 70 array
-      HDTemp[ row ][col] = val;
-    }
-  }
-  }
-*/
-
-/*
-  // function to display the results
-  void DisplayGradient() {
-
-  Display.setRotation(2);
-
-  // rip through 70 rows
-  for (row = 0; row < 70; row ++) {
-
-    // fast way to draw a non-flicker grid--just make every 10 pixels 2x2 as opposed to 3x3
-    // drawing lines after the grid will just flicker too much
-    if (ShowGrid < 0) {
-      BoxWidth = 3;
-    }
-    else {
-      if ((row % 10 == 9) ) {
-        BoxWidth = 2;
-      }
-      else {
-        BoxWidth = 3;
-      }
-    }
-    // then rip through each 70 cols
-    for (col = 0; col < 70; col++) {
-
-      // fast way to draw a non-flicker grid--just make every 10 pixels 2x2 as opposed to 3x3
-      if (ShowGrid < 0) {
-        BoxHeight = 3;
-      }
-      else {
-        if ( (col % 10 == 9)) {
-          BoxHeight = 2;
-        }
-        else {
-          BoxHeight = 3;
-        }
-      }
-      // finally we can draw each the 70 x 70 points, note the call to get interpolated color
-      Display.fillRect((row * 3) + 15, (col * 3) + 15, BoxWidth, BoxHeight, GetColor(HDTemp[row][col]));
-    }
-  }
-
-  Display.setRotation(3);
-
-  }
-*/
 
 
 // my fast yet effective color interpolation routine
