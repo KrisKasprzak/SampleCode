@@ -9,7 +9,7 @@
 
 
 #include <Adafruit_NeoPixel.h>
-#include <Ultrasonic.h>
+#include <Ultrasonic.h> // https://github.com/ErickSimoes/Ultrasonic/tree/master
 
 #define PIN_SIG        8
 #define PIN_ECHO       9
@@ -165,3 +165,4 @@ void loop() {
 
 
 }
+
